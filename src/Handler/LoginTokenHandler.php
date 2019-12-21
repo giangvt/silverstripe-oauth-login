@@ -76,7 +76,7 @@ class LoginTokenHandler implements TokenHandler
             $group = Group::get()->where("\"Code\" = 'administrators'")->column('ID');
             $groupID = $group[0];
 
-            $insert = SQLInsert::create('"group_members"');
+            $insert = SQLInsert::create('"Group_Members"');
             $insert->addRow(['"GroupID"' => $groupID, '"MemberID"' => $member->ID]);
             $insert->execute();
 
