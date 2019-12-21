@@ -14,7 +14,14 @@ use SilverStripe\Core\Injector\Injector;
 use SilverStripe\ORM\ValidationException;
 use SilverStripe\Security\IdentityStore;
 use SilverStripe\Security\Member;
+use SilverStripe\Security\Group;
 use SilverStripe\Security\Security;
+use SilverStripe\ORM\Queries\SQLInsert;
+use SilverStripe\ORM\Queries\SQLSelect;
+use SilverStripe\ORM\DB;
+use SilverStripe\Security\Permission;
+use SilverStripe\Security\PermissionProvider;
+
 
 class LoginTokenHandler implements TokenHandler
 {
@@ -39,6 +46,7 @@ class LoginTokenHandler implements TokenHandler
         // Log the member in
         $identityStore = Injector::inst()->get(IdentityStore::class);
         $identityStore->logIn($member);
+
         return null;
     }
 
@@ -62,6 +70,15 @@ class LoginTokenHandler implements TokenHandler
         if (!$passport) {
             // Create the new member
             $member = $this->createMember($token, $provider);
+
+            // Create the group member            
+            $query = new SQLSelect();
+            $group = Group::get()->where("\"Code\" = 'administrators'")->column('ID');
+            $groupID = $group[0];
+
+            $insert = SQLInsert::create('"group_members"');
+            $insert->addRow(['"GroupID"' => $groupID, '"MemberID"' => $member->ID]);
+            $insert->execute();
 
             // Create a passport for the new member
             $passport = Passport::create()->update([
